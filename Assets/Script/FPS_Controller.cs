@@ -10,6 +10,10 @@ public class FPS_Controller : MonoBehaviour
 
     private float xRotation = 0f;
 
+    public float hitDistance = 10f;
+    public LayerMask hitLayers;
+
+    public Animator anim;
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -25,5 +29,19 @@ public class FPS_Controller : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         playerBody.Rotate(Vector3.up * mouseX);
+
+        //Frappe
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            anim.SetTrigger("Punch");
+            if (Physics.Raycast(transform.position, transform.forward, out RaycastHit hit, hitDistance, hitLayers))
+            {
+                if (hit.collider.GetComponent<Ennemy>())
+                {
+                    hit.collider.GetComponent<Ennemy>().TakeDamage();
+                    print("hit");
+                }
+            }
+        }
     }
 }
