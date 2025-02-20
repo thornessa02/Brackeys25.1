@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed;
+    public float slidingSpeedMultiplicator;
 
     public float groundDrag;
 
@@ -14,9 +15,6 @@ public class PlayerMovement : MonoBehaviour
     public float jumpCooldown;
     public float airMultiplier;
     bool readyToJump;
-
-    [HideInInspector] public float walkSpeed;
-    [HideInInspector] public float sprintSpeed;
 
     [Header("Keybinds")]
     public KeyCode jumpKey = KeyCode.Space;
@@ -34,6 +32,10 @@ public class PlayerMovement : MonoBehaviour
     Vector3 moveDirection;
 
     Rigidbody rb;
+
+    bool isSliding;
+    public float slidingTime;
+    float slidingTimer;
 
     private void Start()
     {
@@ -68,6 +70,9 @@ public class PlayerMovement : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
+        if ((horizontalInput != 0 || verticalInput != 1) && isSliding) EndSlide();
+
+
         // when to jump
         if(Input.GetKey(jumpKey) && readyToJump && grounded)
         {
@@ -76,6 +81,18 @@ public class PlayerMovement : MonoBehaviour
             Jump();
 
             Invoke(nameof(ResetJump), jumpCooldown);
+        }
+
+
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            slidingTimer = slidingTime;
+            isSliding = true;
+            orientation.position += Vector3.down;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftShift) && isSliding)
+        {
+            EndSlide();
         }
     }
 
@@ -86,7 +103,17 @@ public class PlayerMovement : MonoBehaviour
 
         // on ground
         if(grounded)
-            rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
+        {
+            if(isSliding)
+            {
+                rb.AddForce(moveDirection.normalized * moveSpeed * 10f * slidingSpeedMultiplicator, ForceMode.Force);
+                slidingTimer -= Time.deltaTime;
+                if (slidingTimer <= 0) EndSlide();
+            }   
+            else
+                rb.AddForce(moveDirection.normalized * moveSpeed * 10f , ForceMode.Force);
+        }
+            
 
         // in air
         else if(!grounded)
@@ -107,6 +134,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
+        if (isSliding) EndSlide();
         // reset y velocity
         rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
 
@@ -115,5 +143,11 @@ public class PlayerMovement : MonoBehaviour
     private void ResetJump()
     {
         readyToJump = true;
+    }
+
+    private void EndSlide()
+    {
+        isSliding = false;
+        orientation.position += Vector3.up;
     }
 }
