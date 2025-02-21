@@ -17,6 +17,6 @@ public class Ennemy : MonoBehaviour
     public void TakeDamage()
     {
         hp--;
-        Instantiate(bloodFX, transform.position, Quaternion.identity);
+        Instantiate(bloodFX, transform.position+Vector3.up, Quaternion.identity);
     }
 }

@@ -36,6 +36,7 @@ public class PlayerMovement : MonoBehaviour
     bool isSliding;
     public float slidingTime;
     float slidingTimer;
+    Vector2 slideDirection;
 
     private void Start()
     {
@@ -70,11 +71,11 @@ public class PlayerMovement : MonoBehaviour
         horizontalInput = Input.GetAxisRaw("Horizontal");
         verticalInput = Input.GetAxisRaw("Vertical");
 
-        if ((horizontalInput != 0 || verticalInput != 1) && isSliding) EndSlide();
-
+        Vector2 inputDirection = new Vector2(verticalInput ,horizontalInput);
+        //if (inputDirection != slideDirection && isSliding) EndSlide();
 
         // when to jump
-        if(Input.GetKey(jumpKey) && readyToJump && grounded)
+        if (Input.GetKey(jumpKey) && readyToJump && grounded)
         {
             readyToJump = false;
 
@@ -83,9 +84,10 @@ public class PlayerMovement : MonoBehaviour
             Invoke(nameof(ResetJump), jumpCooldown);
         }
 
-
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        if (Input.GetKeyDown(KeyCode.LeftShift) && inputDirection.magnitude != 0)
         {
+            inputDirection = slideDirection;
+            print(inputDirection);
             slidingTimer = slidingTime;
             isSliding = true;
             orientation.position += Vector3.down;
@@ -98,11 +100,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void MovePlayer()
     {
-        // calculate movement direction
         moveDirection = orientation.forward * verticalInput + orientation.right * horizontalInput;
-
         // on ground
-        if(grounded)
+        if (grounded)
         {
             if(isSliding)
             {
